@@ -1,6 +1,17 @@
-from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.db import models
 
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password):
+        if not email:
+            raise ValueError('Users must have an email address')
+        if not password:
+            raise ValueError('Users must have a password')
+
+        email = self.normalize_email(email)
+        user = self.model(email=email)
+        user.set_password(password)
+        user.save(using=self._db)
 
 
 class User(AbstractBaseUser):
@@ -25,11 +36,15 @@ class User(AbstractBaseUser):
     gender = models.CharField(max_length=1, blank=True, verbose_name='성별', choices=GENDER)
     login_type = models.CharField(max_length=10, blank=True, verbose_name='로그인 타입', choices=LOGIN_TYPE)
     coin = models.PositiveIntegerField(default=0, verbose_name='코인')
-    login_count = models.PositiveIntegerField(default=0, verbose_name='로그인 횟수')
+    grade = models.CharField(null=False, default='bronze',verbose_name='회원등급')
+    sns_id = models.CharField(blank=True, verbose_name='소셜로그인아이디')
+    phone = models.CharField(blank=True, default='', verbose_name='휴대폰번호')
+    exit_reason = models.CharField(blank=True, default='', verbose_name='탈퇴사유')
     last_login = models.DateTimeField(auto_now_add=True, verbose_name='마지막 로그인')
     terms = models.BooleanField(default=False, verbose_name='이용약관')
     privacy = models.BooleanField(default=False, verbose_name='개인정보처리방침')
-    isAdult = models.BooleanField(default=False, verbose_name='성인여부')
+    promotion_receive = models.DateTimeField(null=True, verbose_name='이벤트 수신 동의여부')
+    is_adult = models.BooleanField(default=False, verbose_name='성인여부')
     is_superuser = models.BooleanField(default=False, verbose_name='슈퍼유저')
     is_staff = models.BooleanField(default=False, verbose_name='관리자')
     is_active = models.BooleanField(default=True, verbose_name='사용여부')
